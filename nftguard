@@ -34,7 +34,7 @@ def abort():
 def commit():
     signal.signal(signal.SIGPIPE, signal.SIG_IGN)
     signal.signal(signal.SIGHUP, signal.SIG_IGN)
-    do("/usr/bin/nft", "-f", workfile, stderr=subprocess.STDOUT)
+    do(["/usr/bin/nft", "-f", workfile], stderr=subprocess.STDOUT)
     selector = selectors.DefaultSelector()
     selector.register(sys.stdin, selectors.EVENT_READ)
     print("Keep changes? Type YES to commit. ")
@@ -47,7 +47,7 @@ def commit():
             if choice == "YES":
                 print("Committing new configuration")
                 shutil.copy(workfile, configfile)
-                do("/usr/bin/nft", "-f", configfile, stderr=subprocess.STDOUT)
+                do(["/usr/bin/nft", "-f", configfile], stderr=subprocess.STDOUT)
                 commited = True
                 return
     except KeyboardInterrupt:
@@ -55,7 +55,7 @@ def commit():
     finally:
         if not commited:
             print("Rolling back to last commited configuration")
-            do("/usr/bin/nft", "-f", configfile, stderr=subprocess.STDOUT)
+            do(["/usr/bin/nft", "-f", configfile], stderr=subprocess.STDOUT)
 
 def usage():
     print(textwrap.dedent("""
