@@ -1,0 +1,85 @@
+#!/usr/bin/python3
+
+# nftguard (c) 2017 Daniel Schulte under MIT License. See LICENSE
+
+import subprocess
+import sys
+import argparse
+import os
+import shutil
+import selectors
+import signal
+import textwrap
+
+configfile="/etc/nftables.conf"
+workfile=configfile+".edit"
+
+def do(*args, **kwargs):
+    print("do:", args, kwargs)
+    # return subprocess.run(*args, **kwargs)
+
+def edit():
+    if not os.path.exists(workfile):
+        shutil.copy(configfile,workfile)
+    subprocess.run([os.environ.get("EDITOR","vim"), workfile])
+    print("To commit run {} commit".format(sys.argv[0]))
+
+def abort():
+    if os.path.exists(workfile):
+        os.remove(workfile)
+        print("Cleanup done")
+    else:
+        print("Nothing to abort")
+
+def commit():
+    signal.signal(signal.SIGPIPE, signal.SIG_IGN)
+    signal.signal(signal.SIGHUP, signal.SIG_IGN)
+    do("/usr/bin/nft", "-f", workfile, stderr=subprocess.STDOUT)
+    selector = selectors.DefaultSelector()
+    selector.register(sys.stdin, selectors.EVENT_READ)
+    print("Keep changes? Type YES to commit. ")
+    commited = False
+    try:
+        selected = selector.select(timeout=30)
+        selector.close()
+        if selected:        
+            choice = input()
+            if choice == "YES":
+                print("Committing new configuration")
+                shutil.copy(workfile, configfile)
+                do("/usr/bin/nft", "-f", configfile, stderr=subprocess.STDOUT)
+                commited = True
+                return
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if not commited:
+            print("Rolling back to last commited configuration")
+            do("/usr/bin/nft", "-f", configfile, stderr=subprocess.STDOUT)
+
+def usage():
+    print(textwrap.dedent("""
+        Usage: {} edit|abort|commit
+        """).format(sys.argv[0]))
+    sys.exit(1)
+
+def list_get(l: list, n: int, default=None):
+    if n>=len(l):
+        return default
+    return l[n]
+
+if __name__ == "__main__":
+    if os.getuid() != 0:
+        print("You must be root\nHint: sudo !!")
+        sys.exit(1)
+    
+    action = list_get(sys.argv,1,"").lower()
+    if action=="edit":
+        edit()
+    elif action=="abort":
+        abort()
+    elif action=="commit":
+        commit()
+    else:
+        usage()
+        sys.exit(1)    
