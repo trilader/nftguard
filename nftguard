@@ -72,6 +72,9 @@ if __name__ == "__main__":
     if os.getuid() != 0:
         print("You must be root\nHint: sudo !!")
         sys.exit(1)
+    if not os.path.exists(configfile):
+        print("There is no NFT config file. I expect it to be located at {}".format(configfile))
+        sys.exit(1)
     
     action = list_get(sys.argv,1,"").lower()
     if action=="edit":
