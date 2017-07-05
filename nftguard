@@ -15,8 +15,8 @@ configfile="/etc/nftables.conf"
 workfile=configfile+".edit"
 
 def do(*args, **kwargs):
-    print("do:", args, kwargs)
-    # return subprocess.run(*args, **kwargs)
+    # print("do:", args, kwargs)
+    return subprocess.run(*args, **kwargs)
 
 def edit():
     if not os.path.exists(workfile):
