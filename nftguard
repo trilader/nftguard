@@ -11,18 +11,21 @@ import selectors
 import signal
 import textwrap
 
-configfile="/etc/nftables.conf"
-workfile=configfile+".edit"
+configfile = "/etc/nftables.conf"
+workfile = configfile + ".edit"
+
 
 def do(*args, **kwargs):
     # print("do:", args, kwargs)
     return subprocess.run(*args, **kwargs)
 
+
 def edit():
     if not os.path.exists(workfile):
-        shutil.copy(configfile,workfile)
-    subprocess.run([os.environ.get("EDITOR","vim"), workfile])
+        shutil.copy(configfile, workfile)
+    subprocess.run([os.environ.get("EDITOR", "vim"), workfile])
     print("To commit run {} commit".format(sys.argv[0]))
+
 
 def abort():
     if os.path.exists(workfile):
@@ -30,6 +33,7 @@ def abort():
         print("Cleanup done")
     else:
         print("Nothing to abort")
+
 
 def commit():
     signal.signal(signal.SIGPIPE, signal.SIG_IGN)
@@ -57,16 +61,17 @@ def commit():
             print("Rolling back to last commited configuration")
             do(["nft", "-f", configfile], stderr=subprocess.STDOUT)
 
+
 def usage():
-    print(textwrap.dedent("""
-        Usage: {} edit|abort|commit
-        """).format(sys.argv[0]))
+    print("\nUsage: {} edit|abort|commit\n".format(sys.argv[0]))
     sys.exit(1)
 
+
 def list_get(l: list, n: int, default=None):
-    if n>=len(l):
+    if n >= len(l):
         return default
     return l[n]
+
 
 if __name__ == "__main__":
     if os.getuid() != 0:
@@ -76,12 +81,12 @@ if __name__ == "__main__":
         print("There is no NFT config file. I expect it to be located at {}".format(configfile))
         sys.exit(1)
 
-    action = list_get(sys.argv,1,"").lower()
-    if action=="edit":
+    action = list_get(sys.argv, 1, "").lower()
+    if action == "edit":
         edit()
-    elif action=="abort":
+    elif action == "abort":
         abort()
-    elif action=="commit":
+    elif action == "commit":
         commit()
     else:
         usage()
