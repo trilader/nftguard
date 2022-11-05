@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# nftguard (c) 2017 Daniel Schulte under MIT License. See LICENSE
+# nftguard (c) 2017-2022 Daniel Schulte under MIT License. See LICENSE
 
 import subprocess
 import sys
