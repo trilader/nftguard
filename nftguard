@@ -42,7 +42,7 @@ def commit():
     try:
         selected = selector.select(timeout=30)
         selector.close()
-        if selected:        
+        if selected:
             choice = input()
             if choice == "YES":
                 print("Committing new configuration")
@@ -75,7 +75,7 @@ if __name__ == "__main__":
     if not os.path.exists(configfile):
         print("There is no NFT config file. I expect it to be located at {}".format(configfile))
         sys.exit(1)
-    
+
     action = list_get(sys.argv,1,"").lower()
     if action=="edit":
         edit()
@@ -85,4 +85,4 @@ if __name__ == "__main__":
         commit()
     else:
         usage()
-        sys.exit(1)    
+        sys.exit(1)
